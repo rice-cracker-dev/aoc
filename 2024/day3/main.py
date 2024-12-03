@@ -1,18 +1,13 @@
 from re import search
 
 
-mulRegex = "^mul\\([0-9]*,[0-9]*\\)"
+mulRegex = "^mul\\(([0-9]*,[0-9]*)\\)"
 doRegex = "^do\\(\\)"
 dontRegex = "^don't\\(\\)"
 
 
 def readInputs() -> str:
     with open("./inputs.txt", "r") as f: return f.read()
-
-
-def parseMul(s: str) -> int:
-    numbers = [int(x) for x in s[len("mul("):-len(")")].split(',')]
-    return numbers[0] * numbers[1]
 
 
 def main():
@@ -36,9 +31,10 @@ def main():
 
         if not matches: continue
 
-        parsed = parseMul(matches.group(0))
-        total += parsed
-        if do: totalDo += parsed
+        parsed = [int(x) for x in matches.group(1).split(',')]
+        mul = parsed[0] * parsed[1]
+        total += mul
+        if do: totalDo += mul
         
     print(f"part1: {total}")
     print(f"part2: {totalDo}")
