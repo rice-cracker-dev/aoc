@@ -1,142 +1,126 @@
-import math
+Point = tuple[int, int]
 
 
-type Grid = list[list[bool]]
-type Move = tuple[int, int, int, int]
+DIRECTIONS: list[Point] = list([(0, -1), (1, 0), (0, 1), (-1, 0)])
+DIRECTIONS_LENGTH = len(DIRECTIONS)
 
 
-def readInputs() -> tuple[Grid, int, int]:
-    grid: Grid = []
-    pX, pY = 0, 0
+def cycleDirection(index: int):
+    return (index + 1) % DIRECTIONS_LENGTH
 
+
+def readInputs() -> tuple[int, set[Point], Point]:
     with open("./inputs.txt") as f:
-        for yi, yv in enumerate(f):
-            line: list[bool] = []
-            for xi, xv in enumerate(yv):
-                line.append(xv == "#")
-                if xv == "^":
-                    pX, pY = xi, yi
-            grid.append(line)
+        grid = f.read().splitlines()
 
-    return grid, pX, pY
+        size = len(grid)
+        walls: set[Point] = set()
+        pos: Point = (0, 0)
 
+        for y, line in enumerate(grid):
+            for x, char in enumerate(line):
+                if char == "^":
+                    pos = x, y
+                elif char == "#":
+                    walls.add((x, y))
+                
 
-def rotatePoint(x: int, y: int, degree: float) -> tuple[int, int]:
-    rX = (x * math.cos(degree)) - (y * math.sin(degree))
-    rY = (y * math.cos(degree)) + (x * math.sin(degree))
-
-    return round(rX), round(rY)
-
-
-def getNext(x: int, y: int, dX: int, dY: int) -> tuple[int, int]:
-    return x + dX, y + dY
+        return size, walls, pos
 
 
-def isPointOutOfBound(grid: Grid, x: int, y: int) -> bool:
-    if y < 0 or y >= len(grid): return True
-    if x < 0 or x >= len(grid[y]): return True
-
-    return False
+def outOfBound(size: int, point: Point) -> bool:
+    x, y = point
+    return y < 0 or y >= size or x < 0 or x >= size
 
 
-def printGrid(grid: Grid, pX: int, pY: int, oX: int | None = None, oY: int | None = None, pathGrid: Grid | None = None):
-    for yi, y in enumerate(grid):
-        line = ""
-        for xi, x in enumerate(y):
-            if pX == xi and pY == yi:
-                line += "@"
-            elif pathGrid and pathGrid[yi][xi]:
-                line += "$"
-            elif oX == xi and oY == yi:
-                line += "O"
-            else:
-                line += "#" if x else "."
-        print(line)
+def getNext(size: int, point: Point, dirIndex: int) -> Point | None:
+    x, y = point
+    dX, dY = DIRECTIONS[dirIndex]
+    
+    next = x + dX, y + dY
+
+    return None if outOfBound(size, next) else next
 
 
-def moveNext(grid: Grid, pX: int, pY: int, dX: int, dY: int) -> Move | None:
-    nextX, nextY = getNext(pX, pY, dX, dY)
-    if isPointOutOfBound(grid, nextX, nextY):
+def step(size: int, walls: set[Point], pos: Point, dirIndex: int) -> tuple[Point, int] | None:
+    nextMove = getNext(size, pos, dirIndex)
+    if not nextMove:
         return None
 
-    if grid[nextY][nextX]:
-        dX, dY = rotatePoint(dX, dY, math.radians(90))
+    if nextMove in walls:
+        dirIndex = cycleDirection(dirIndex)
     else:
-        pX, pY = nextX, nextY
+        pos = nextMove
 
-    return pX, pY, dX, dY
+    return pos, dirIndex
 
 
-def getMoveList(grid: Grid, pX: int, pY: int) -> tuple[int, list[Move]]:
-    dX, dY = 0, -1
-    moves = 0
-    gridClaimed: Grid = [[False for _ in range(len(grid[y]))] for y in range(len(grid))]
-    moveList: list[Move] = []
-    while not isPointOutOfBound(grid, pX, pY):
-        if not gridClaimed[pY][pX]:
-            gridClaimed[pY][pX] = True
-            moves += 1
+def isRepeating(size: int, walls: set[Point], pos: Point, dirIndex: int) -> bool:
+    moves: set[tuple[Point, int]] = set()
+    isRepeating = False
+    while not outOfBound(size, pos):
+        moves.add((pos, dirIndex))
 
-        moveList.append((pX, pY, dX, dY))
-
-        next = moveNext(grid, pX, pY, dX, dY)
-        if not next:
+        nextStep = step(size, walls, pos, dirIndex)
+        if not nextStep:
             break
 
-        pX, pY, dX, dY = next
+        if nextStep in moves:
+            isRepeating = True
+            break
 
-    return moves, moveList
-
-
-def isRepeatingPattern(grid: Grid, pX: int, pY: int, dX: int, dY: int) -> bool:
-    moveList: list[Move] = []
-
-    while not isPointOutOfBound(grid, pX, pY):
-        moveList.append((pX, pY, dX, dY))
-
-        nextMove = moveNext(grid, pX, pY, dX, dY)
-        if not nextMove:
-            return False
-        
-        if nextMove in moveList:
-            return True
-
-        pX, pY, dX, dY = nextMove
+        pos, dirIndex = nextStep
     
-    return False
-        
-
-# 💀💀💀
-def part2(grid: list[list[bool]], moveList: list[Move], startX: int, startY: int):
-    obstacles: list[tuple[int, int]] = []
-    count = 0
-
-    for pX, pY, dX, dY in moveList:
-        count += 1
-        nextX, nextY = getNext(pX, pY, dX, dY)
-        if isPointOutOfBound(grid, nextX, nextY) or grid[nextY][nextX] or (nextX, nextY) == (startX, startY) or (nextX, nextY) in obstacles:
-            continue
-    
-        grid[nextY][nextX] = True
-        #printGrid(grid, startY, startX, nextX, nextY)
-        #print()
-        #print(nextX, nextY)
-        repeating = isRepeatingPattern(grid, startX, startY, 0, -1)
-        if repeating:
-            obstacles.append((nextX, nextY))
-            print(f"{count} / {len(moveList)}")
-
-        grid[nextY][nextX] = False
+    return isRepeating
 
 
-    print(len(obstacles))
-
+def drawGrid(size: int, walls: set[Point], start: Point, extra: Point | None = None, moves: set[Point] | None = None):
+    for y in range(size):
+        builder = ""
+        for x in range(size):
+            if (x, y) == start:
+                builder += "@"
+            elif (x, y) == extra:
+                builder += "O"
+            elif moves and (x, y) in moves:
+                builder += "$"
+            else:
+                builder += "#" if (x, y) in walls else "."
+        print(builder)
+    print()
 
 def main():
-    grid, pX, pY = readInputs()
-    moves, moveList = getMoveList(grid, pX, pY)
-    print(moves)
-    part2(grid, moveList, pX, pY)
+    size, walls, start = readInputs()
+    pos: Point = start
+    dirIndex: int = 0
+    stepped: set[Point] = set() 
+    moves: list[tuple[Point, int]] = list()
+
+    while True:
+        stepped.add(pos)
+        moves.append((pos, dirIndex))
+
+        nextStep = step(size, walls, pos, dirIndex)
+        if not nextStep:
+            break
+
+        pos, dirIndex = nextStep
+
+    print(f"part1: {len(stepped)}")
+
+    obstacles: set[Point] = set()
+    for movePos, moveDir in moves:
+        nextMove = getNext(size, movePos, moveDir)
+        if not nextMove or nextMove in walls or nextMove == start:
+            continue
+
+        walls.add(nextMove)
+        repeating = isRepeating(size, walls, start, 0)
+        if repeating:
+            obstacles.add(nextMove)
+        walls.remove(nextMove)
+
+    print(f"part2: {len(obstacles)}")
 
 if __name__ == "__main__":
     main()

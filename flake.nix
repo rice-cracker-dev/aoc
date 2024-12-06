@@ -11,7 +11,7 @@
     pkgs = nixpkgs.legacyPackages.${system};
   in {
     devShells.${system}.default = with pkgs; mkShell {
-      buildInputs = [python3];
+      buildInputs = [python3 pypy310];
       # ...
     };
   };
