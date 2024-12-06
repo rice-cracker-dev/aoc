@@ -55,7 +55,7 @@ def step(size: int, walls: set[Point], pos: Point, dirIndex: int) -> tuple[Point
     return pos, dirIndex
 
 
-def isRepeating(size: int, walls: set[Point], pos: Point, dirIndex: int) -> bool:
+def run(size: int, walls: set[Point], pos: Point, dirIndex: int = 0) -> tuple[set[tuple[Point, int]], bool]:
     moves: set[tuple[Point, int]] = set()
     isRepeating = False
     while not outOfBound(size, pos):
@@ -71,7 +71,7 @@ def isRepeating(size: int, walls: set[Point], pos: Point, dirIndex: int) -> bool
 
         pos, dirIndex = nextStep
     
-    return isRepeating
+    return moves, isRepeating
 
 
 def drawGrid(size: int, walls: set[Point], start: Point, extra: Point | None = None, moves: set[Point] | None = None):
@@ -89,24 +89,11 @@ def drawGrid(size: int, walls: set[Point], start: Point, extra: Point | None = N
         print(builder)
     print()
 
+
 def main():
     size, walls, start = readInputs()
-    pos: Point = start
-    dirIndex: int = 0
-    stepped: set[Point] = set() 
-    moves: list[tuple[Point, int]] = list()
-
-    while True:
-        stepped.add(pos)
-        moves.append((pos, dirIndex))
-
-        nextStep = step(size, walls, pos, dirIndex)
-        if not nextStep:
-            break
-
-        pos, dirIndex = nextStep
-
-    print(f"part1: {len(stepped)}")
+    moves, _ = run(size, walls, start)
+    print(f"part1: {len(set([move for move, _ in moves]))}")
 
     obstacles: set[Point] = set()
     for movePos, moveDir in moves:
@@ -115,7 +102,7 @@ def main():
             continue
 
         walls.add(nextMove)
-        repeating = isRepeating(size, walls, start, 0)
+        _, repeating = run(size, walls, start)
         if repeating:
             obstacles.add(nextMove)
         walls.remove(nextMove)
