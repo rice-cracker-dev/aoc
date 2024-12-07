@@ -1,6 +1,6 @@
 use std::fs;
 
-fn read_input() -> (Vec<i32>, Vec<i32>) {
+fn read_input() -> (Vec<usize>, Vec<usize>) {
     let mut left = Vec::new();
     let mut right = Vec::new();
 
@@ -12,8 +12,8 @@ fn read_input() -> (Vec<i32>, Vec<i32>) {
 
     for line in &lines {
         let mut split = line.split("   ");
-        left.push(split.next().unwrap().parse::<i32>().unwrap());
-        right.push(split.next().unwrap().parse::<i32>().unwrap());
+        left.push(split.next().unwrap().parse::<usize>().unwrap());
+        right.push(split.next().unwrap().parse::<usize>().unwrap());
     }
 
     left.sort();
@@ -27,12 +27,11 @@ fn main() -> std::io::Result<()> {
     let mut total = 0;
     let mut total_similarity: usize = 0;
 
-    for (left, right) in lefts.iter().zip(rights.iter()) {
-        let diff = left - right;
-        let abs_diff = diff.abs();
+    for (&left, &right) in lefts.iter().zip(rights.iter()) {
+        let abs = left.abs_diff(right);
 
-        total += abs_diff;
-        total_similarity += (*left as usize) * rights.iter().filter(|&x| x == left).count();
+        total += abs;
+        total_similarity += left * rights.iter().filter(|&x| x == &left).count();
     }
 
     println!("part1: {}", total);
