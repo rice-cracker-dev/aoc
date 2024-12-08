@@ -57,7 +57,7 @@ fn part1(bound: isize, map: HashMap<char, Vec<(isize, isize)>>) {
                 antinode_set.insert(a2);
             }
         }
-    }
+    
 
     println!("part1: {}", antinode_set.len());
 }

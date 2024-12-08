@@ -8,7 +8,7 @@ enum Order {
 
 fn read_input() -> Vec<Vec<usize>> {
     let mut grid: Vec<Vec<usize>> = Vec::new();
-    let lines: Vec<String> = fs::read_to_string("./inputs.txt")
+    let lines: Vec<String> = fs::read_to_string("./day2/inputs.txt")
         .expect("Can't read inputs.txt")
         .lines()
         .map(String::from)

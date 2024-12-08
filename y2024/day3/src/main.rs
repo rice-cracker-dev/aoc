@@ -3,7 +3,7 @@ use std::fs::read_to_string;
 use regex::Regex;
 
 fn read_inputs() -> String {
-    read_to_string("./inputs.txt").expect("Can't read inputs.txt.")
+    read_to_string("./day3/inputs.txt").expect("Can't read inputs.txt.")
 }
 
 fn main() {

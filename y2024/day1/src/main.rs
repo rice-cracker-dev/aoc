@@ -4,7 +4,7 @@ fn read_input() -> (Vec<usize>, Vec<usize>) {
     let mut left = Vec::new();
     let mut right = Vec::new();
 
-    let lines: Vec<String> = fs::read_to_string("./inputs.txt")
+    let lines: Vec<String> = fs::read_to_string("./day1/inputs.txt")
         .expect("Can't read inputs.txt")
         .lines()
         .map(String::from)
