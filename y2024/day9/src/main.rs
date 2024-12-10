@@ -116,24 +116,7 @@ fn reallocate_file(slice: &[Option<usize>]) -> Vec<Option<usize>> {
 }
 
 fn calculate_checksum(slice: &[Option<usize>]) -> usize {
-    let mut checksum = 0;
-    for (i, allocation) in slice.iter().enumerate() {
-        if let Some(a) = allocation {
-            checksum += i * a;
-        }
-    }
-    checksum
-}
-
-fn print_alloc(slice: &[Option<usize>]) {
-    for allocation in slice {
-        let Some(id) = allocation else {
-            print!(".");
-            continue;
-        };
-
-        print!("{id}");
-    }
+    slice.iter().enumerate().filter(|(_, v)| v.is_some()).map(|(i, v)| i * v.unwrap()).sum()
 }
 
 fn main() -> std::io::Result<()> {
